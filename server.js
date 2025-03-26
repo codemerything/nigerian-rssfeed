@@ -17,7 +17,11 @@ const app = express();
 const parser = new RSSParser();
 const port = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://nigerian-rssfeed.vercel.app",
+  })
+);
 
 const newsFeeds = [
   { url: "https://punchng.com/feed/", name: "Punch" },
