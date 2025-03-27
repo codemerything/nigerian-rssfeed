@@ -12,7 +12,7 @@ function App() {
     const fetchNews = async () => {
       try {
         const apiUrl = import.meta.env.VITE_API_URL || "/api/feed";
-        const response = await axios.get(`${apiUrl}/api/feed`, {
+        const response = await axios.get(`${apiUrl}`, {
           timeout: 8000,
         });
         const parser = new DOMParser();
