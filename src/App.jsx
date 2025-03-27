@@ -11,8 +11,10 @@ function App() {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-        const response = await axios.get(`${apiUrl}/api/feed`);
+        const apiUrl = import.meta.env.VITE_API_URL || "/api/feed";
+        const response = await axios.get(`${apiUrl}/api/feed`, {
+          timeout: 8000,
+        });
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(response.data, "text/xml");
         const items = Array.from(xmlDoc.getElementsByTagName("item")).map(
