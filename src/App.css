@@ -48,6 +48,12 @@ h1 {
   text-decoration: underline;
 }
 
+.news-image {
+  width: 200px;
+  height: auto;
+  object-fit: cover;
+}
+
 .loading,
 .error {
   text-align: center;
