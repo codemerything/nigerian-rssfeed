@@ -24,6 +24,7 @@ function App() {
             description:
               item.getElementsByTagName("description")[0]?.textContent || "",
             pubDate: item.getElementsByTagName("pubDate")[0]?.textContent,
+            img: item.getElementsByTagName("enclosure")[0]?.getAttribute("url"),
             source:
               item.getElementsByTagName("source")[0]?.textContent || "Unknown",
           })
@@ -93,6 +94,11 @@ function App() {
                   sourceColors[item.source] || sourceColors["Unknown"],
               }}
             >
+              <img
+                src={item.img || "https://via.placeholder.com/150"}
+                alt={item.title}
+                className="news-image"
+              />
               <h2>
                 <a href={item.link} target="_blank" rel="noopener noreferrer">
                   {item.title}
