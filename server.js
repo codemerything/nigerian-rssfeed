@@ -10,7 +10,7 @@ function escapeXml(unsafe) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
+    .replace(/'/g, "&#39;");
 }
 
 const app = express();
@@ -28,8 +28,8 @@ const newsFeeds = [
   { url: "https://www.vanguardngr.com/feed/", name: "Vanguard" },
   { url: "https://thenationonlineng.net/feed/", name: "The Nation" },
   { url: "https://guardian.ng/feed/", name: "Guardian" },
-  { url: "https://www.thisdaylive.com/feed/", name: "This Day" },
 ];
+const url = "https://guardian.ng/feed/";
 
 app.get("/api/feed", async (req, res) => {
   try {
@@ -57,8 +57,12 @@ app.get("/api/feed", async (req, res) => {
         <description>Latest news from Nigerian sources</description>
 vak        <link>https://your-vercel-domain.vercel.app</link>
         ${rssItems
-          .map(
-            (item) => `
+          .map((item) => {
+            const enclosure = item.enclosure || {};
+            const imageUrl = enclosure?.url || "";
+            const imageTitle = enclosure?.title || "";
+            const imageLength = enclosure?.length || 0;
+            return `
         <item>
             <title><![CDATA[${escapeXml(item.title)}]]></title>
             <link>${escapeXml(item.link)}</link>
@@ -68,15 +72,29 @@ vak        <link>https://your-vercel-domain.vercel.app</link>
             <pubDate>${escapeXml(
               item.pubDate || new Date().toUTCString()
             )}</pubDate>
+<enclosure url="${escapeXml(imageUrl)}" length="${escapeXml(imageLength)}" />
             <source>${escapeXml(item.source)}</source>
-        </item>`
-          )
+        </item>`;
+          })
           .join("")}
     </channel>
 </rss>`;
 
     res.set("Content-Type", "application/rss+xml");
     res.send(rssFeed);
+  } catch (error) {
+    console.error("Error generating feed:", error);
+    res.status(500).send("Error generating feed");
+  }
+});
+
+// created to check single rss feed to see where the image links are.
+
+app.get("/api/singlefeed", async (req, res) => {
+  try {
+    const feed = await parser.parseURL(url);
+
+    res.json(feed);
   } catch (error) {
     console.error("Error generating feed:", error);
     res.status(500).send("Error generating feed");
