@@ -90,17 +90,6 @@ vak        <link>https://your-vercel-domain.vercel.app</link>
 
 // created to check single rss feed to see where the image links are.
 
-app.get("/api/singlefeed", async (req, res) => {
-  try {
-    const feed = await parser.parseURL(url);
-
-    res.json(feed);
-  } catch (error) {
-    console.error("Error generating feed:", error);
-    res.status(500).send("Error generating feed");
-  }
-});
-
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
