@@ -29,7 +29,17 @@ function App() {
               item.getElementsByTagName("source")[0]?.textContent || "Unknown",
           })
         );
-        setFeedItems(items);
+
+        // Merge new items with existing ones, avoiding duplicates
+        setFeedItems((prevItems) => {
+          const newItems = items.filter(
+            (item) => !prevItems.some((prev) => prev.link === item.link)
+          );
+          return [...prevItems, ...newItems].sort(
+            (a, b) => new Date(b.pubDate) - new Date(a.pubDate)
+          ); // Sort by time
+        });
+
         setLoading(false);
       } catch (err) {
         setError("Failed to fetch news feed");
@@ -37,8 +47,14 @@ function App() {
       }
     };
 
-    fetchNews();
-  }, []);
+    fetchNews(); // Initial fetch
+
+    // Fetch every 5 minutes (300,000 ms)
+    const intervalId = setInterval(fetchNews, 300000);
+
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
+  }, []); // Empty dependency array since fetchNews is inside
 
   const sources = [
     "All",
@@ -47,6 +63,9 @@ function App() {
     "The Nation",
     "Guardian",
     "This Day",
+    "Premium Times",
+    "Channel TV",
+    "Sahara Reporters",
   ];
   const filteredItems =
     selectedSource === "All"
@@ -110,7 +129,7 @@ function App() {
                 </div>
               ) : (
                 <div className="w-full sm:w-[250px] h-[200px] sm:h-[100px] rounded-md bg-purple-300 flex items-center justify-center text-white">
-                  No image
+                  {item.source}
                 </div>
               )}
               <div className="flex flex-col justify-between flex-grow ">
