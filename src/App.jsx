@@ -67,51 +67,84 @@ function App() {
   if (error) return <div className="error">{error}</div>;
 
   return (
-    <div className="app">
-      <h1>Uncos Naija News Feed</h1>
-      <div className="filter-container">
-        <label htmlFor="source-filter">Filter by source: </label>
-        <select
-          id="source-filter"
-          value={selectedSource}
-          onChange={(e) => setSelectedSource(e.target.value)}
-        >
-          {sources.map((source) => (
-            <option key={source} value={source}>
-              {source}
-            </option>
-          ))}
-        </select>
+    <div className="flex flex-col bg-purple-200 min-h-screen">
+      <div className="flex p-2 items-center justify-between mt-3">
+        <div>
+          <p className="font-inter font-bold border border-neutral-200 bg-white/70 p-1 shadow-md backdrop-blur- text-md text-center text-black py-1 px-2 rounded-md">
+            News Feed
+          </p>
+        </div>
+
+        {/* select */}
+        <div className="text-sm  border border-neutral-200 bg-white/70 p-1 shadow-md backdrop-blur- text-black rounded-md">
+          <label htmlFor="source-filter" className="text-black"></label>
+          <select
+            id="source-filter"
+            className="font-inter"
+            value={selectedSource}
+            onChange={(e) => setSelectedSource(e.target.value)}
+          >
+            {sources.map((source) => (
+              <option key={source} value={source}>
+                {source}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
-      <div className="feed-container">
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mx-4 mt-4 pb-8">
         {filteredItems.length > 0 ? (
           filteredItems.map((item, index) => (
             <article
               key={index}
-              className="news-item"
-              style={{
-                backgroundColor:
-                  sourceColors[item.source] || sourceColors["Unknown"],
-              }}
+              className="flex flex-col sm:flex-row gap-4 p-4 rounded-md bg-white"
             >
-              <img
-                src={item.img || "https://via.placeholder.com/150"}
-                alt={item.title}
-                className="news-image"
-              />
-              <h2>
-                <a href={item.link} target="_blank" rel="noopener noreferrer">
-                  {item.title}
-                </a>
-              </h2>
-              <p>{item.description.substring(0, 200)}...</p>
-              <small>
-                {new Date(item.pubDate).toLocaleDateString()} - {item.source}
-              </small>
+              {item.img ? (
+                <div className="w-full sm:w-[250px] h-[200px] sm:h-[100px]">
+                  <img
+                    src={item.img}
+                    alt="Item image"
+                    className="w-full h-full object-cover rounded-md"
+                  />
+                </div>
+              ) : (
+                <div className="w-full sm:w-[250px] h-[200px] sm:h-[100px] rounded-md bg-purple-300 flex items-center justify-center text-white">
+                  No image
+                </div>
+              )}
+              <div className="flex flex-col justify-between flex-grow ">
+                <div className="leading-5">
+                  <h2 className="text-[17px] lg:text-md font-bold mb-2">
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="tracking-tight font-inter "
+                    >
+                      {item.title}
+                    </a>
+                  </h2>
+                  <p className="text-sm mb-2 leading-4">
+                    {item.description.substring(0, 150)}...
+                  </p>
+                </div>
+                <div
+                  className="text-xs px-2 py-1 rounded-md inline-block self-start"
+                  style={{
+                    backgroundColor:
+                      sourceColors[item.source] || sourceColors["Unknown"],
+                  }}
+                >
+                  {new Date(item.pubDate).toLocaleDateString()} - {item.source}
+                </div>
+              </div>
             </article>
           ))
         ) : (
-          <p>No news available for this source.</p>
+          <p className="text-center p-4 bg-white rounded-md">
+            No news available for this source.
+          </p>
         )}
       </div>
     </div>
