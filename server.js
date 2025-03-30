@@ -10,7 +10,14 @@ function escapeXml(unsafe) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+    .replace(/'/g, "&apos;");
+}
+
+// Helper function to extract image URL from HTML content
+function extractImageUrl(htmlContent) {
+  if (!htmlContent) return "";
+  const match = htmlContent.match(/<img[^>]+src=["'](.*?)["']/i);
+  return match ? match[1] : "";
 }
 
 const app = express();
@@ -28,8 +35,13 @@ const newsFeeds = [
   { url: "https://www.vanguardngr.com/feed/", name: "Vanguard" },
   { url: "https://thenationonlineng.net/feed/", name: "The Nation" },
   { url: "https://guardian.ng/feed/", name: "Guardian" },
+  { url: "https://www.premiumtimesng.com/feed/", name: "Premium Times" },
+  {
+    url: "https://saharareporters.com/articles/rss-feed",
+    name: "Sahara Reporters",
+  },
+  { url: "https://www.channelstv.com/feed/", name: "Channel TV" },
 ];
-const url = "https://guardian.ng/feed/";
 
 app.get("/api/feed", async (req, res) => {
   try {
@@ -38,7 +50,23 @@ app.get("/api/feed", async (req, res) => {
     const feedPromises = newsFeeds.map(async ({ url, name }) => {
       try {
         const feed = await parser.parseURL(url);
-        return feed.items.map((item) => ({ ...item, source: name }));
+        return feed.items.map((item) => {
+          // Use enclosure if available, otherwise extract from content:encoded
+          let imageUrl =
+            item.enclosure?.url ||
+            extractImageUrl(
+              item["content:encoded"] || item.content || item.description || ""
+            );
+          return {
+            ...item,
+            source: name,
+            enclosure: {
+              url: imageUrl,
+              length: item.enclosure?.length || "0", // Default length if not provided
+              type: item.enclosure?.type || (imageUrl ? "image/jpeg" : ""), // Guess type if needed
+            },
+          };
+        });
       } catch (error) {
         console.error(`Error fetching ${url}:`, error);
         return [];
@@ -55,13 +83,13 @@ app.get("/api/feed", async (req, res) => {
     <channel>
         <title>Nigeria News Aggregator</title>
         <description>Latest news from Nigerian sources</description>
-vak        <link>https://your-vercel-domain.vercel.app</link>
+        <link>https://your-vercel-domain.vercel.app</link>
         ${rssItems
           .map((item) => {
             const enclosure = item.enclosure || {};
-            const imageUrl = enclosure?.url || "";
-            const imageTitle = enclosure?.title || "";
-            const imageLength = enclosure?.length || 0;
+            const imageUrl = enclosure.url || "";
+            const imageLength = enclosure.length || "0";
+            const imageType = enclosure.type || "";
             return `
         <item>
             <title><![CDATA[${escapeXml(item.title)}]]></title>
@@ -72,7 +100,11 @@ vak        <link>https://your-vercel-domain.vercel.app</link>
             <pubDate>${escapeXml(
               item.pubDate || new Date().toUTCString()
             )}</pubDate>
-<enclosure url="${escapeXml(imageUrl)}" length="${escapeXml(imageLength)}" />
+            ${
+              imageUrl
+                ? `<enclosure url="${escapeXml(imageUrl)}" length="${escapeXml(imageLength)}" type="${escapeXml(imageType)}" />`
+                : ""
+            }
             <source>${escapeXml(item.source)}</source>
         </item>`;
           })
@@ -88,8 +120,20 @@ vak        <link>https://your-vercel-domain.vercel.app</link>
   }
 });
 
-// created to check single rss feed to see where the image links are.
+app.get("/api/singlefeed", async (req, res) => {
+  try {
+    const feed = await parser.parseURL("https://www.premiumtimesng.com/feed");
+
+    res.json(feed);
+  } catch (error) {
+    console.error("Error generating feed:", error);
+
+    res.status(500).send("Error generating feed");
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+
+export default app;
